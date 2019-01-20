@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #================================================================================
 # Title          : aws-extract-iam-policies.sh
 # Description    : Use this script to extract IAM policies in AWS account
@@ -14,9 +12,10 @@
 # Date           : 20180828
 # Version        : 1
 # Usage          : ./aws-extract-iam-policies.sh [policy-name]
-# Config file    : ./configs/aws-extract-iam-policies.properties
-# Depends on     : Depends on the jq library
+# Depends        : Depends on the library libs/jq 
+# Config files   : configs/aws-extract-iam-policies.properties 
 #================================================================================
+#!/bin/bash
 
 function init(){
   source ./configs/aws-extract-iam-policies.properties

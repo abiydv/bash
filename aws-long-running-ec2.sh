@@ -64,10 +64,10 @@ function getInstanceDetails(){
 
 function getUserEmail(){
         grep -i $1 ./${file_name} > ./tmp
-        if [ `cat ./tmp | wc -l` -gt 1 ];then
+        if [ `wc -l < ./tmp` -gt 1 ];then
                 mail_to=$mail_from
         else
-                mail_to=`cat ./tmp | cut -f5 -d ","`
+                mail_to=`cut -f5 -d "," ./tmp`
         fi
         }
 

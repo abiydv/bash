@@ -8,6 +8,7 @@
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
+# Usage          : ./aws-lambda-monitor.sh
 # Depends        : Depends on the library libs/jq 
 # Config files   : configs/aws-lambda-monitor.properties and 
 #                  configs/email.properties

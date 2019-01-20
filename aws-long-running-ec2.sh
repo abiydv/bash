@@ -22,7 +22,7 @@ function init(){
 }
 
 function getUsers(){
-        aws ec2 describe-instances --region ${aws_region} --query 'Reservations[*].Instances[*].[Tags[?Key==`User`].Value]' \
+        aws ec2 describe-instances --region ${aws_region} --query "Reservations[*].Instances[*].[Tags[?Key==`User`].Value]" \
         --output text | sort | uniq > ./user-list
         lastStepCheck "Fetching details of all users in aws account"
 }
@@ -30,7 +30,7 @@ function getUsers(){
 function getInstanceDetails(){
         while read line
         do
-                if [ `echo $line | wc -c` -eq 1 ];then
+                if [ $(echo $line | wc -c) -eq 1 ];then
                         continue
                 fi
 
@@ -45,18 +45,18 @@ function getInstanceDetails(){
 
                 while read instanceline
                 do
-                        extract_date=`echo $instanceline | cut -f4 -d " " | cut -f1 -d "T"`
-                        launch_date=`date -d $extract_date +%s`
-                        week_old_date=`date -d 'now - 1 weeks' +%s`
+                        extract_date=$(echo $instanceline | cut -f4 -d " " | cut -f1 -d "T")
+                        launch_date=$(date -d $extract_date +%s)
+                        week_old_date=$(date -d 'now - 1 weeks' +%s)
 
                         if [ $launch_date -lt $week_old_date ];then
                                 echo $instanceline >> ./user-email-list
                         fi
                 done < ./user-instance-list
 
-                if [ `grep "i-" ./user-email-list | wc -l` -ne 0 ]; then
+                if [ $(grep "i-" ./user-email-list | wc -l) -ne 0 ]; then
                         setEmailFooter "./user-email-list"
-                        emailUser "./user-email-list"
+                        emailUser "./user-email-list" $line
                 fi
 
         done < ./user-list
@@ -64,10 +64,10 @@ function getInstanceDetails(){
 
 function getUserEmail(){
         grep -i $1 ./${file_name} > ./tmp
-        if [ `cat ./tmp | wc -l` -gt 1 ];then
+        if [ $(wc -l < ./tmp) -gt 1 ];then
                 mail_to=$mail_from
         else
-                mail_to=`cat ./tmp | cut -f5 -d ","`
+                mail_to=$(cut -f5 -d "," ./tmp)
         fi
         }
 
@@ -95,6 +95,7 @@ function setEmailFooter(){
 }
 
 function emailUser(){
+        user=$2
         mailcontent=$1
         /usr/sbin/sendmail -f $mail_from $mail_to $mail_cc < $mailcontent
 }

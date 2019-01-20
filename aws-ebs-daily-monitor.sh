@@ -2,16 +2,18 @@
 
 #================================================================================
 # Title          : aws-ebs-daily-monitor.sh
-# Description    : This script will generate a daily ebs volume report
+# Description    : This script will generate a daily ebs volume report.
 #                  To identify the user of a volume, ec2-instance and volume must
-#                  have the tag "user":"name"
-#                  The script will upload this report to a given S3 path and
-#                  remove reports older than 5 days.
+#                  have the tag "user":"name". The script will upload this report 
+#                  to a given S3 path and also removes reports older than 5 days.       
 #
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
-# Usage          : bash aws-ebs-daily-monitor.sh
+# Usage          : ./aws-ebs-daily-monitor.sh
+# Depends        : Depends on the library libs/jq 
+# Config files   : configs/aws-ebs-daily-monitor.properties and 
+#                  configs/email.properties
 #================================================================================
 
 function uploadReport(){

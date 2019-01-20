@@ -39,7 +39,6 @@ function getUserReport(){
         do
                 local username=`echo $user | cut -f1 -d','`
                 local user_age=`echo $user | cut -f3 -d',' | cut -c1-10` # user_creation_time
-                local password_enabled=`echo $user | cut -f4 -d','`
                 local password_last_used=`echo $user | cut -f5 -d',' | cut -c1-10`
                 local access_key1_last_used=`echo $user | cut -f11 -d',' | cut -c1-10`
                 local access_key2_last_used=`echo $user | cut -f16 -d',' | cut -c1-10`
@@ -118,7 +117,7 @@ function uploadReport(){
 function cleanFolder(){
         fileCount=$(aws s3 ls s3://${s3_path} | wc -l)
         if [ "$fileCount" -gt "5" ]; then
-           deletefile=$( aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}' )
+           deleteFile=$(aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}')
            aws s3 rm s3://${s3_path}/${deleteFile}
         fi
 }

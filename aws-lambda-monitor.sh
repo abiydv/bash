@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #================================================================================
 # Title          : aws-lambda-monitor.sh
 # Description    : This script will scan the lambdas and create a report with
@@ -10,8 +8,11 @@
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
-# Usage          : bash aws-lambda-monitor.sh
+# Depends        : Depends on the library libs/jq 
+# Config files   : configs/aws-lambda-monitor.properties and 
+#                  configs/email.properties
 #================================================================================
+#!/bin/bash
 
 function init(){
   source ./configs/email.properties

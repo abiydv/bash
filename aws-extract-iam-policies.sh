@@ -48,7 +48,7 @@ function getPolicyList(){
   echo -n "Extracting ALL IAM managed policies"
   aws iam list-policies --scope Local --query Policies[].PolicyName | jq -r .[] > ./policy.list
   checkLastStep
-  echo "  `cat ./policy.list | wc -l` policies in account"
+  echo " `wc -l < ./policy.list` policies in account"
   echo ""
 }
 

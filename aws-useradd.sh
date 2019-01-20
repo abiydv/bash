@@ -1,18 +1,18 @@
 #!/bin/bash
 
-#================================================================================
+#=========================================================================================
 # Title          : aws-useradd.sh
 # Description    : This script will add a new user to the aws account
-#                  based on a reference user and it updates the user inventory
-#                  file on s3.
-#                  It will also send email to the new user with instructions
-#
+#                  based on a reference user and it updates the user inventory file on s3.
+#                  It will send email to the new user with instructions.
+#                  If no reference user is specified, new user will be added to a default
+#                  group (user-basic).
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
 # Usage          : bash aws-useradd.sh newuser,newuser@example.com,ref_user
 # Depends        : Depends on the jq library
-#================================================================================
+#===========================================================================================
 
 function init(){
         source ./configs/aws-useradd.properties
@@ -51,8 +51,8 @@ function addUser(){
                         aws iam attach-user-policy --user-name $new_username --policy-arn $policy
                 done < ref_user_direct_policies
         else
-                echo "No reference user mentioned, adding $new_username to system-user-basic group only"
-                aws iam add-user-to-group --user-name $new_username --group-name system-user-basic
+                echo "No reference user mentioned, adding $new_username to user-basic group only"
+                aws iam add-user-to-group --user-name $new_username --group-name user-basic
         fi
 
         aws iam create-login-profile --user-name $new_username --password $new_password --password-reset-required

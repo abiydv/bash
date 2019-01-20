@@ -31,12 +31,9 @@ function cleanFolder(){
 }
 
 # Declare and assign variables #
-S3_PATH="s3://S3_BUCKET/PATH/"
-REGION="us-east-1"
+source ../config/aws-ebs-daily-monitor.properties
+source ../config/email.properties
 DATED=`date +%Y-%m-%d`
-MAIL_TO="mailfrom@example.com"
-MAIL_TO="mailto@example.com"
-MAIL_CC="mail1@example.com,mail2@example.com,mail3@example.com"
 
 aws ec2 describe-volumes --region ${REGION} --filters Name=status,Values=available \
 --query 'Volumes[*].[VolumeId,Size,CreateTime]' --output text > ebs-available-volumes
@@ -84,6 +81,6 @@ printf "VolumeId\tSize(GB)\tCreated\t\tInstanceId\tUser" >> final_report
 sort -k 5  ebs-volume-owners >> final_report
 echo >> final_report
 
-/usr/sbin/sendmail -f ${MAIL_FROM} ${MAIL_TO} ${MAIL_CC} < final_report
-uploadReport ${S3_PATH} ${DATED}
-cleanFolder ${S3_PATH}
+/usr/sbin/sendmail -f ${mail_from} ${mail_to} ${mail_cc} < final_report
+uploadReport ${s3_path} ${DATED}
+cleanFolder ${s3_path}

@@ -83,7 +83,7 @@ function getLambdaRuns(){
       echo "MARK: ACTIVE"
     else
       echo "MARK: INACTIVE"
-      echo "<tr><td align="left"> ${fn_name} </td><td align="left"> "${prefix3}" </td></tr>" >> ./report
+      echo "<tr><td align="left"> ${fn_name} </td><td align="left"> ${prefix3} </td></tr>" >> ./report
       echo "${fn_name}" >> ./report.csv
     fi
   done < ./lambdaName.list

@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #================================================================================
 # Title          : aws-long-running-ec2.sh
 # Description    : This script will scan the instances and notify users who
@@ -8,8 +6,12 @@
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
-# Usage          : bash aws-long-running-ec2.sh
+# Usage          : bash 
+# Usage          : ./aws-long-running-ec2.sh
+# Depends        :  
+# Config files   : configs/aws-useradd.properties
 #================================================================================
+#!/bin/bash
 
 function init(){
         source ./configs/aws-useradd.properties

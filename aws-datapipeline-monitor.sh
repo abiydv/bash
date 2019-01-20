@@ -81,7 +81,7 @@ function sendEmail(){
 }
 
 function setEmailHeader(){
-        local count=`cat $2 | wc -l`
+        local count=`wc -l < $2`
         echo "From:$mail_from" > $1
         echo "To:$mail_to" >> $1
         echo "Cc:$mail_cc" >> $1

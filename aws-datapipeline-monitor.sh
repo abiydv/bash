@@ -17,8 +17,8 @@
 function init(){
         source ./configs/datapipeline-monitor.properties
         source ./configs/email.properties
-        local today=`date +%Y-%m-%d -d 'now +1 day'`
-        local expiry=`date +%Y-%m-%d -d 'now -2 months'`
+        local today=$(date +%Y-%m-%d -d 'now +1 day')
+        local expiry=$(date +%Y-%m-%d -d 'now -2 months')
         getPipelines
         getPipelineRuns ${today} ${expiry}
         setEmailHeader "./email-report" "./report.csv" $today $expiry
@@ -31,7 +31,7 @@ function init(){
 }
 
 function uploadReport(){
-        report_date=`date +%Y-%m-%d`
+        report_date=$(date +%Y-%m-%d)
         report=$1
         mv $report $report_date
         aws s3 cp $report_date $s3_path --sse
@@ -52,26 +52,26 @@ function getPipelineRuns(){
         local today=$1
         local expiry=$2
         echo "Checking for pipeline runs between ${today} and ${expiry}"
-        echo "<tr><th align="left"> Pipeline Name </th><th align="left"> Pipeline Id </th></tr>" > ./report
+        echo "<tr><th align=\"left\"> Pipeline Name </th><th align=\"left\"> Pipeline Id </th></tr>" > ./report
         >./report.csv
         while read pid
         do
                 aws datapipeline list-runs --pipeline-id ${pid} --start-interval ${expiry}T00:00:00,${today}T00:00:00 \
                 --region $aws_region --output json > ${pid}-runs.list
                 
-                size=`cat ${pid}-runs.list | wc -l`
+                size=$(cat ${pid}-runs.list | wc -l)
                 if [ $size -lt 1 ] || [ $size -eq 1 ];then
-                        echo "`jq -r '.pipelineIdList[] | select (.id == "'${pid}'") | \
-                        .name' pipeline.tmp`,${pid}" >> ./report.csv
+                        echo "$(jq -r '.pipelineIdList[] | select (.id == "'${pid}'") | \
+                        .name' pipeline.tmp),${pid}" >> ./report.csv
                         
-                        echo "<tr><td align="left">`jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
-                        | .name' pipeline.tmp`</td><td align="left">${pid}</td></tr>" >> ./report
+                        echo "<tr><td align=\"left\">$(jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
+                        | .name' pipeline.tmp)</td><td align=\"left\">${pid}</td></tr>" >> ./report
                         
-                        echo "INACTIVE: ${pid} : `jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
-                        | .name' pipeline.tmp`"
+                        echo "INACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
+                        | .name' pipeline.tmp)"
                 else
-                        echo "ACTIVE: ${pid} : `jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
-                        | .name' pipeline.tmp`"
+                        echo "ACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'${pid}'") \
+                        | .name' pipeline.tmp)"
                 fi
         done < ./pipelineId.list
 }
@@ -81,7 +81,7 @@ function sendEmail(){
 }
 
 function setEmailHeader(){
-        local count=`wc -l < $2`
+        local count=$(echo $2 | wc -l)
         echo "From:$mail_from" > $1
         echo "To:$mail_to" >> $1
         echo "Cc:$mail_cc" >> $1
@@ -109,7 +109,6 @@ function setEmailBody(){
 
 function setEmailFooter(){
         echo "<h4>Idle pipelines will be deleted in the next 7 days. </h4>" >> $1
-        echo "<h4>If you wish to keep any of them, please write to us to whitelist it </h4>" >> $1
         echo "</html>" >> $1
 }
 

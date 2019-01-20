@@ -47,14 +47,14 @@ aws ec2 describe-volumes --region ${REGION} --filters Name=status,Values=in-use 
 > ebs-volume-owners
 
 while read line; do
-        instance=`echo $line | awk -F " " '{print $4}'`
-        created=`echo $line | awk -F " " '{print $3}'`
-        size=`echo $line | awk -F " " '{print $2}'`
-        volume=`echo $line | awk -F " " '{print $1}'`
+        instance=$(echo $line | awk -F " " '{print $4}')
+        created=$(echo $line | awk -F " " '{print $3}')
+        size=$(echo $line | awk -F " " '{print $2}')
+        volume=$(echo $line | awk -F " " '{print $1}')
         
         owner=$(aws ec2 describe-instances --region ${REGION} \ 
         --filters Name=instance-id,Values=$instance \
-        --query 'Reservations[*].Instances[*].[Tags[?Key==`User`].Value]' \
+        --query "Reservations[*].Instances[*].[Tags[?Key==`User`].Value]" \
         --output text)
         
         printf "\n%s\t%s\t%s\t%s\t%s" $volume $size $created $instance $owner >> ebs-volume-owners

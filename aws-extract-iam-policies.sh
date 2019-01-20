@@ -48,7 +48,7 @@ function getPolicyList(){
   echo -n "Extracting ALL IAM managed policies"
   aws iam list-policies --scope Local --query Policies[].PolicyName | jq -r .[] > ./policy.list
   checkLastStep
-  echo " `wc -l < ./policy.list` policies in account"
+  echo " $(wc -l < ./policy.list) policies in the account"
   echo ""
 }
 
@@ -59,8 +59,8 @@ function getPolicyDocument(){
     role=`aws iam list-entities-for-policy --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
     --query PolicyRoles[].RoleName --output text`
     
-    version=`aws iam get-policy --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
-    --query Policy.DefaultVersionId --output text`
+    version=$(aws iam get-policy --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
+    --query Policy.DefaultVersionId --output text)
     
     checkLastStep
     if [ ! -z $role ];then

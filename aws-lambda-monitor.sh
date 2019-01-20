@@ -18,8 +18,8 @@
 function init(){
   source ./configs/email.properties
   source ./configs/aws-lambda-monitor.properties
-  local today=`date +%Y-%m-%d -d 'now +1 day'`
-  local expiry=`date +%Y-%m-%d -d 'now -2 months'`
+  local today=$(date +%Y-%m-%d -d 'now +1 day')
+  local expiry=$(date +%Y-%m-%d -d 'now -2 months')
   getLambdas
   getLambdaRuns ${today} ${expiry}
   setEmailHeader "./email-report" "./report.csv" $today $expiry
@@ -32,7 +32,7 @@ function init(){
 }
 
 function uploadReport(){
-  report_date=`date +%Y-%m-%d`
+  report_date=$(date +%Y-%m-%d)
   report=$1
   mv $report $report_date
   aws s3 cp $report_date s3://${s3_path} --sse
@@ -51,7 +51,7 @@ function getLambdas(){
 
 function getLambdaRuns(){
   echo "Fetching Lambda execution details"
-  echo "<tr><th align="left"> Lambda Name </th><th align="left"> Not run since </th></tr>" > ./report
+  echo "<tr><th align=\"left\"> Lambda Name </th><th align=\"left\"> Not run since </th></tr>" > ./report
   
   > ./report.csv
 
@@ -60,9 +60,9 @@ function getLambdaRuns(){
     echo ""
     echo "${fn_name} ========== "
     local state="INACTIVE"
-    local prefix1=`date +%Y/%m`
-    local prefix2=`date +%Y/%m -d 'now -1 month'`
-    local prefix3=`date +%Y/%m -d 'now -2 months'`
+    local prefix1=$(date +%Y/%m)
+    local prefix2=$(date +%Y/%m -d 'now -1 month')
+    local prefix3=$(date +%Y/%m -d 'now -2 months')
 
     for i in $prefix1 $prefix2 $prefix3; do
       >./stream.list
@@ -83,7 +83,7 @@ function getLambdaRuns(){
       echo "MARK: ACTIVE"
     else
       echo "MARK: INACTIVE"
-      echo "<tr><td align="left"> ${fn_name} </td><td align="left"> "${prefix3}" </td></tr>" >> ./report
+      echo "<tr><td align="left"> ${fn_name} </td><td align="left"> ${prefix3} </td></tr>" >> ./report
       echo "${fn_name}" >> ./report.csv
     fi
   done < ./lambdaName.list
@@ -94,12 +94,12 @@ function sendEmail(){
 }
 
 function setEmailHeader(){
-  local count=`wc -l < $2`
+  local count=$(echo $2 | wc -l)
   echo "From:$mail_from" > $1
   echo "To:$mail_to" >> $1
   echo "Cc:$mail_cc" >> $1
   echo "Subject: ATTENTION: $count Idle Lambdas (>2 months)" >> $1
-  echo "Content-Type: text/html; charset="us-ascii"" >> $1
+  echo "Content-Type: text/html; charset=\"us-ascii\"" >> $1
   echo "Content-Transfer-Encoding: binary"  >> $1
   echo "MIME-Version: 1.0"  >> $1
   echo "Importance:High" >> $1
@@ -110,7 +110,7 @@ function setEmailHeader(){
   echo ".emailTable th { background-color:#000;color:white;width:50%; }" >> $1
   echo ".emailTable td, .emailTable th { padding:5px;border:1px solid #000; }" >> $1
   echo "</style></head>" >> $1
-  echo "<h4>$count Lambdas have no executions since last 2 months</h4> " >> $1
+  echo "<h4>$count Lambdas have no executions since last 2 months</h4>" >> $1
 }
 
 function setEmailBody(){
@@ -138,7 +138,7 @@ function cleanFolder(){
   fileCount=$(aws s3 ls s3://${s3_path} | wc -l)
   if [ "$fileCount" -gt "5" ]; then
     deleteFile=$(aws s3 ls s3://${s3_path} | sed -n 1p | awk '{print $4}' )
-    aws s3 rm s3://${s3_path}${deleteFile}
+    aws s3 rm s3://${s3_path}/${deleteFile}
   fi
 }
 

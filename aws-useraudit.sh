@@ -15,8 +15,8 @@
 function init(){
         source ./configs/email.properties
         source ./configs/aws-useraudit.properties
-        timestamp=`date +%Y-%m-%d`
-        last_month=`date +%Y-%m-%d -d 'now -3 months'`
+        timestamp=$(date +%Y-%m-%d)
+        last_month=$(date +%Y-%m-%d -d 'now -3 months')
         getUserReport $timestamp $last_month
         uploadReport "./idle-users.report"
         cleanFolder
@@ -37,12 +37,11 @@ function getUserReport(){
         
         sed 1d ./credentials-report-${timestamp}.csv | while read user
         do
-                local username=`echo $user | cut -f1 -d','`
-                local user_age=`echo $user | cut -f3 -d',' | cut -c1-10` # user_creation_time
-                local password_enabled=`echo $user | cut -f4 -d','`
-                local password_last_used=`echo $user | cut -f5 -d',' | cut -c1-10`
-                local access_key1_last_used=`echo $user | cut -f11 -d',' | cut -c1-10`
-                local access_key2_last_used=`echo $user | cut -f16 -d',' | cut -c1-10`
+                local username=$(echo $user | cut -f1 -d',')
+                local user_age=$(echo $user | cut -f3 -d',' | cut -c1-10)
+                local password_last_used=$(echo $user | cut -f5 -d',' | cut -c1-10)
+                local access_key1_last_used=$(echo $user | cut -f11 -d',' | cut -c1-10)
+                local access_key2_last_used=$(echo $user | cut -f16 -d',' | cut -c1-10)
                 if [[ $password_last_used < $last_month ]] || [[ $password_last_used == "no_information" ]];then
                         if [[ $access_key1_last_used == "NA" ]] && [[ $access_key2_last_used == "NA" ]];then
                                 echo -e "User: $username | Created on: $user_age | Password last used: $password_last_used \
@@ -76,7 +75,7 @@ function getUserReport(){
                         fi
                 fi
         done
-        local idle_users=`wc -l ./idle-users.report`
+        local idle_users=$(wc -l < ./idle-users.report)
         sendEmail $idle_users ./idle-users.report
 }
 
@@ -118,8 +117,9 @@ function uploadReport(){
 function cleanFolder(){
         fileCount=$(aws s3 ls s3://${s3_path} | wc -l)
         if [ "$fileCount" -gt "5" ]; then
-           deletefile=$( aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}' )
+           deleteFile=$(aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}')
            aws s3 rm s3://${s3_path}/${deleteFile}
         fi
 }
+
 init

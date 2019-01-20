@@ -1,5 +1,3 @@
-#!/bin/bash
-
 #================================================================================
 # Title          : aws-useraudit.sh
 # Description    : This script will look for idle users in your aws account
@@ -8,8 +6,11 @@
 # Author         : https://github.com/abiydv
 # Date           : 20181228
 # Version        : 1
-# Usage          : bash aws-useraudit.sh
+# Depends        : Depends on the library libs/jq 
+# Config files   : configs/aws-useraudit.properties and
+#                  configs/email.properties
 #================================================================================
+#!/bin/bash
 
 function init(){
         source ./configs/email.properties
@@ -98,13 +99,13 @@ function sendEmail(){
 }
 
 lastStepCheck (){
-if [ $? -ne 0 ];
-then
-        echo "$1 failed"
-        exit 1
-else
-        echo "$1 successful"
-fi
+       if [ $? -ne 0 ];
+       then
+          echo "$1 failed"
+          exit 1
+       else
+          echo "$1 successful"
+       fi
 }
 
 function uploadReport(){
@@ -117,9 +118,8 @@ function uploadReport(){
 function cleanFolder(){
         fileCount=$(aws s3 ls s3://${s3_path} | wc -l)
         if [ "$fileCount" -gt "5" ]; then
-        deletefile=$( aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}' )
-        aws s3 rm s3://${s3_path}/${deleteFile}
+           deletefile=$( aws s3 ls s3://${s3_path} | sep -n 1p | awk '{print $4}' )
+           aws s3 rm s3://${s3_path}/${deleteFile}
         fi
 }
-
 init

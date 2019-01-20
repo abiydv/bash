@@ -56,7 +56,7 @@ function getInstanceDetails(){
 
                 if [ `grep "i-" ./user-email-list | wc -l` -ne 0 ]; then
                         setEmailFooter "./user-email-list"
-                        emailUser "./user-email-list" $line
+                        emailUser "./user-email-list"
                 fi
 
         done < ./user-list
@@ -95,7 +95,6 @@ function setEmailFooter(){
 }
 
 function emailUser(){
-        user=$2
         mailcontent=$1
         /usr/sbin/sendmail -f $mail_from $mail_to $mail_cc < $mailcontent
 }

@@ -108,5 +108,4 @@ function lastStepCheck(){
                 echo "$1 successful"
         fi
 }
-
 init

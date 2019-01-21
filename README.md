@@ -1,4 +1,4 @@
-# Bash Scripts [![Codacy Badge](https://api.codacy.com/project/badge/Grade/49cfe77ce54748f9b8b2486c467e9956)](https://www.codacy.com/app/abi5090/bash?utm_source=github.com&amp;utm_medium=referral&amp;utm_content=abiydv/bash&amp;utm_campaign=Badge_Grade)
+# Bash Scripts
 Bash scripts for some mundane tasks on AWS
 
 ### [AWS Datapipeline monitor](./aws-datapipeline-monitor.sh)

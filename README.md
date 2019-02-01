@@ -1,4 +1,7 @@
 # Bash Scripts
+
+![bash-shell](https://github.com/abiydv/ref-docs/blob/master/images/logos/bash-shell.png)
+
 Bash scripts for some mundane tasks on AWS
 
 ### [AWS Datapipeline monitor](./aws-datapipeline-monitor.sh)

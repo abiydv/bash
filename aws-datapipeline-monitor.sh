@@ -1,3 +1,4 @@
+#!/bin/bash
 #================================================================================
 # Title          : aws-ebs-daily-monitor.sh
 # Description    : This script will generate a report for idle datapipelines not
@@ -12,7 +13,6 @@
 # Config files   : configs/datapipeline-monitor.properties and 
 #                  configs/email.properties
 #================================================================================
-#!/bin/bash
 
 function init(){
         source ./configs/datapipeline-monitor.properties

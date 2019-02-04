@@ -1,3 +1,4 @@
+#!/bin/bash
 #================================================================================
 # Title          : aws-useraudit.sh
 # Description    : This script will look for idle users in your aws account
@@ -10,7 +11,6 @@
 # Config files   : configs/aws-useraudit.properties and
 #                  configs/email.properties
 #================================================================================
-#!/bin/bash
 
 function init(){
   source ./configs/email.properties

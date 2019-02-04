@@ -1,3 +1,4 @@
+#!/bin/bash
 #=========================================================================================
 # Title          : aws-useradd.sh
 # Description    : This script will add a new user to the aws account
@@ -11,7 +12,6 @@
 # Depends        : Depends on the jq library
 # Config files   : configs/aws-useradd.properties
 #===========================================================================================
-#!/bin/bash
 
 function init(){
   source ./configs/aws-useradd.properties

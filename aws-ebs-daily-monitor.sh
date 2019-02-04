@@ -1,5 +1,4 @@
 #!/bin/bash
-
 #================================================================================
 # Title          : aws-ebs-daily-monitor.sh
 # Description    : This script will generate a daily ebs volume report.

@@ -1,3 +1,4 @@
+#!/bin/bash
 #================================================================================
 # Title          : aws-long-running-ec2.sh
 # Description    : This script will scan the instances and notify users who
@@ -11,7 +12,6 @@
 # Depends        :  
 # Config files   : configs/aws-useradd.properties
 #================================================================================
-#!/bin/bash
 
 function init(){
   source ./configs/aws-useradd.properties

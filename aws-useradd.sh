@@ -78,7 +78,7 @@ function updateInventory(){
 
   serial_no=$(tail -1 "${inventory_file}" | cut -f1 -d",")
   new_serial_no=$(( serial_no + 1 ))
-  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> ${inventory_file}
+  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> "${inventory_file}"
 
   aws s3 cp "${inventory_file}" s3://"${s3_path}"/"${inventory_file}" --sse
   lastStepCheck "Inventory sheet upload"

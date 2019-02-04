@@ -9,4 +9,4 @@ before_install:
     - sudo pip install bashate
 
 script:
-- shellcheck -x aws-useradd.sh
+- shellcheck -x -e SC2129 -e SC2181 aws-useradd.sh

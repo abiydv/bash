@@ -15,54 +15,57 @@
 
 function init(){
   source ./configs/aws-useradd.properties
-  addUser $1
+  addUser "$1"
 }
 
 function addUser(){
-  local new_password=`cat /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1`
-  local ref_username=`echo $1 | cut -f3 -d ','`
-  local new_username=`echo $1 | cut -f1 -d ','`
-  local new_useremail=`echo $1 | cut -f2 -d ','`
+  local new_password
+  new_password=$(head /dev/urandom | tr -dc 'a-zA-Z0-9' | fold -w 10 | head -n 1)
+  local ref_username
+  ref_username=$(echo "$1" | cut -f3 -d ',')
+  local new_username
+  new_username=$(echo "$1" | cut -f1 -d ',')
+  local new_useremail
+  new_useremail=$(echo "$1" | cut -f2 -d ',')
 
   if [ -z "$new_useremail" ];then
     echo "ERROR: You've not entered user's email-id. Please try again!"
     exit 1
   fi
 
-  aws iam create-user --user-name $new_username > user-create
+  aws iam create-user --user-name "$new_username" > user-create
   lastStepCheck "Creating user $new_username"
 
-  local creation_time=`jq -r .User.CreateDate user-create`
-  created_time=$(echo $creation_time | cut -d "T" -f1)
+  created_time=$(jq -r .User.CreateDate user-create | cut -d "T" -f1)
 
-  if [ ! -z $ref_username ];then
-    aws iam list-groups-for-user --user-name $ref_username | jq -r .Groups[].GroupName > ref_user_groups
+  if [ -n "$ref_username" ];then
+    aws iam list-groups-for-user --user-name "$ref_username" | jq -r .Groups[].GroupName > ref_user_groups
     lastStepCheck "Listing Groups of reference user $ref_username"
     
-    aws iam list-attached-user-policies --user-name $ref_username \
+    aws iam list-attached-user-policies --user-name "$ref_username" \
     | jq -r .AttachedPolicies[].PolicyArn > ref_user_direct_policies
     lastStepCheck "Listing Policies of reference user $ref_username"
 
-    while read group
+    while read -r group
       do
-        aws iam add-user-to-group --user-name $new_username --group-name $group
+        aws iam add-user-to-group --user-name "$new_username" --group-name "$group"
       done < ref_user_groups
-      while read policy
+      while read -r policy
         do
-          aws iam attach-user-policy --user-name $new_username --policy-arn $policy
+          aws iam attach-user-policy --user-name "$new_username" --policy-arn "$policy"
         done < ref_user_direct_policies
   else
     echo "No reference user mentioned, adding $new_username to user-basic group only"
-    aws iam add-user-to-group --user-name $new_username --group-name user-basic
+    aws iam add-user-to-group --user-name "$new_username" --group-name user-basic
   fi
 
-  aws iam create-login-profile --user-name $new_username --password $new_password --password-reset-required
+  aws iam create-login-profile --user-name "$new_username" --password "$new_password" --password-reset-required
   lastStepCheck "Creating initial login password for $new_username"
 
-  updateInventory $new_username $created_time $new_useremail
+  updateInventory "$new_username" "$created_time" "$new_useremail"
 
-  setEmailContent $mail_from $new_useremail $mail_cc $new_username "emailInstructions"
-  setEmailContent $mail_from $new_useremail $new_username $new_password "emailPassphrase"
+  setEmailContent "$mail_from" "$new_useremail" "$mail_cc" "$new_username" "emailInstructions"
+  setEmailContent "$mail_from" "$new_useremail" "$new_username" "$new_password" "emailPassphrase"
 }
 
 function updateInventory(){
@@ -70,14 +73,14 @@ function updateInventory(){
   local created_time=$2
   local new_useremail=$3
 
-  aws s3 cp s3://${s3_path}/${inventory_file} .
+  aws s3 cp s3://"${s3_path}"/"${inventory_file}" .
   lastStepCheck "Inventory sheet download"
 
-  serial_no=`tail -1 ${inventory_file} | cut -f1 -d","`
-  new_serial_no=$(( $serial_no + 1 ))
-  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> ${inventory_file}
+  serial_no=$(tail -1 "${inventory_file}" | cut -f1 -d",")
+  new_serial_no=$(( serial_no + 1 ))
+  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> "${inventory_file}"
 
-  aws s3 cp ${inventory_file} s3://${s3_path}/${inventory_file} --sse
+  aws s3 cp "${inventory_file}" s3://"${s3_path}"/"${inventory_file}" --sse
   lastStepCheck "Inventory sheet upload"
 }
 
@@ -86,8 +89,8 @@ function setEmailContent(){
   local mail_to=$2
   echo "From:$1" > email_content
   echo "To:$2" >> email_content
-  if [ $5 == "emailInstructions" ];then
-    local mail_cc=$3
+  if [ "$5" == "emailInstructions" ];then
+    local mail_cc="$3"
     echo "Cc:$3" >> email_content
     echo "Subject: Welcome to Amazon Web Services (1/2)" >> email_content
     echo "" >> email_content
@@ -105,7 +108,7 @@ function setEmailContent(){
     echo "" >> email_content
     echo -e "Instructions at this location : ${instructions_url}" >> email_content
     echo "" >> email_content
-  elif [ $5 == "emailPassphrase" ];then
+  elif [ "$5" == "emailPassphrase" ];then
     local mail_cc=""
     echo "Subject: Welcome to Amazon Web Services (2/2)" >> email_content
     echo "" >> email_content
@@ -117,7 +120,7 @@ function setEmailContent(){
   echo "Please write back if you have any questions - ${mail_cc}" >> email_content
   echo "" >> email_content
   echo "" >> email_content
-  sendmail -f $mail_from $mail_to $mail_cc < email_content
+  sendmail -f "$mail_from" "$mail_to" "$mail_cc" < email_content
   lastStepCheck "Email $5 to $mail_to $mail_cc"
 }
 
@@ -131,4 +134,4 @@ function lastStepCheck(){
 }
 
 export PATH=$PATH:../lib/
-init $1
+init "$1"

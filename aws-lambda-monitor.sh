@@ -1,3 +1,4 @@
+#!/bin/bash
 #================================================================================
 # Title          : aws-lambda-monitor.sh
 # Description    : This script will scan the lambdas and create a report with
@@ -13,7 +14,6 @@
 # Config files   : configs/aws-lambda-monitor.properties and 
 #                  configs/email.properties
 #================================================================================
-#!/bin/bash
 
 function init(){
   source ./configs/email.properties

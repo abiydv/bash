@@ -19,23 +19,22 @@
 
 function init(){
   source ./configs/aws-extract-iam-policies.properties
-  checkInput $1
+  checkInput "$1"
   getPolicyDocument
-  lastStep
+  echo "Execution ended | Bye!"
 }
 
-function checkLastStep(){
-  if [ $? -ne 0 ]; then
-    echo "  Error!. Exiting."
-    lastStep
+function check (){
+  if ! "$@"; then
+    echo "FAILED - $*"
     exit 1
   else
-    echo "  Success!"
+    echo "SUCCESS - $*"
   fi
 }
 
 function checkInput(){
-  if [ ! -z $1 ]; then
+  if [ -n "$1" ]; then
     echo "$1" > ./policy.list
     echo "Policy specified $1"
   else
@@ -46,40 +45,32 @@ function checkInput(){
 
 function getPolicyList(){
   echo -n "Extracting ALL IAM managed policies"
-  aws iam list-policies --scope Local --query Policies[].PolicyName | jq -r .[] > ./policy.list
-  checkLastStep
-  echo " $(wc -l < ./policy.list) policies in the account"
+  check aws iam list-policies --scope Local --query Policies[].PolicyName | jq -r .[] > ./policy.list
+  echo "$(wc -l < ./policy.list) policies in the account"
   echo ""
 }
 
 function getPolicyDocument(){
-  while read policy
+  while read -r policy
   do
     echo -n "$policy : Extracting role and version info"
-    role=`aws iam list-entities-for-policy --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
-    --query PolicyRoles[].RoleName --output text`
+    role=$(aws iam list-entities-for-policy --policy-arn arn:aws:iam::"$aws_account":policy/"$policy" \
+    --query PolicyRoles[].RoleName --output text)
     
-    version=$(aws iam get-policy --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
+    version=$(aws iam get-policy --policy-arn arn:aws:iam::"$aws_account":policy/"$policy" \
     --query Policy.DefaultVersionId --output text)
     
-    checkLastStep
-    if [ ! -z $role ];then
-      jsonName=$role
+    if [ -n "$role" ];then
+      jsonName="$role"
       else
-      jsonName=$policy
+      jsonName="$policy"
     fi
     echo -n "$policy : Extracting policy document"
-    aws iam get-policy-version --policy-arn arn:aws:iam::${aws_account}:policy/${policy} \
-    --version-id $version --query PolicyVersion.Document | jq . 2>&1> ${save_to}${jsonName}.json
-    checkLastStep
+    check aws iam get-policy-version --policy-arn arn:aws:iam::"${aws_account}":policy/"${policy}" \
+    --version-id "$version" --query PolicyVersion.Document | jq . > "${save_to}${jsonName}".json 2>&1
     echo "$policy : Saved to ${save_to}${jsonName}.json"
   done < ./policy.list
 }
 
-function lastStep(){
-  echo ""
-  echo "Execution ended | Bye!"
-}
-
 export PATH=${PATH}:../libs/
-init $1
+init "$1"

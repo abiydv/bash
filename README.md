@@ -1,4 +1,7 @@
 # Bash Scripts
+
+![bash-shell](https://github.com/abiydv/ref-docs/blob/master/images/logos/bash-shell.png)
+
 Bash scripts for some mundane tasks on AWS
 
 ### [AWS Datapipeline monitor](./aws-datapipeline-monitor.sh)
@@ -19,5 +22,5 @@ This script notifies users who have EC2 instances running longer than a week in 
 ### [AWS IAM User add](./aws-useradd.sh)
 Automate user addition and inventory them. It also sends them emails with username/passowrd and what to do next. We like them to setup their MFA etc. and also send along a doc explaining the steps.
 
-### [AWS IAM User audit](./aws-useraudit)
+### [AWS IAM User audit](./aws-useraudit.sh)
 Audit your IAM userlist and remove long idle users. Crucial to keep your account acces secure.

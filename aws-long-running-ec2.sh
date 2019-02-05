@@ -16,7 +16,6 @@
 function init(){
   source ./configs/aws-useradd.properties
   check aws s3 cp s3://"${s3_path}${inventory_file}" .
-  #lastStepCheck "Downloading user details from s3"
   getUsers
   getInstanceDetails
 }
@@ -41,7 +40,6 @@ function getInstanceDetails(){
       --output text > ./user-instance-list
 
     sed -i "/\b\(stopped\|t2.micro\)\b/d" ./user-instance-list
-
     setEmailHeader "$line"
 
     while read -r instanceline

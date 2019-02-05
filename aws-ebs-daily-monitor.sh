@@ -40,8 +40,8 @@ function check (){
   fi
 }
 
-source ../configs/aws-ebs-daily-monitor.properties
-source ../configs/email.properties
+source ./configs/aws-ebs-daily-monitor.properties
+source ./configs/email.properties
 DATED=$(date +%Y-%m-%d)
 
 check aws ec2 describe-volumes --region "${REGION}" --filters Name=status,Values=available \

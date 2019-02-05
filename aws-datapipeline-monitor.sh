@@ -62,17 +62,11 @@ function getPipelineRuns(){
                 
         size=$(wc -l < "$pid"-runs.list)
             if [ "$size" -lt 1 ] || [ "$size" -eq 1 ];then
-                echo "$(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") | '\
-                '.name' pipeline.tmp),${pid}" >> ./report.csv
-                        
-                echo "<tr><td align=\"left\">$(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") '\
-                '| .name' pipeline.tmp)</td><td align=\"left\">${pid}</td></tr>" >> ./report
-                        
-                echo "INACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") '\
-                '| .name' pipeline.tmp)"
+                echo "$(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") | .name' pipeline.tmp),${pid}" >> ./report.csv
+                echo "<tr><td align=\"left\">$(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") | .name' pipeline.tmp)</td><td align=\"left\">${pid}</td></tr>" >> ./report           
+                echo "INACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") | .name' pipeline.tmp)"
             else
-                echo "ACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") '\
-                '| .name' pipeline.tmp)"
+                echo "ACTIVE: ${pid} : $(jq -r '.pipelineIdList[] | select (.id == "'"${pid}"'") | .name' pipeline.tmp)"
             fi
     done < ./pipelineId.list
 }

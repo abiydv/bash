@@ -33,34 +33,30 @@ function addUser(){
     exit 1
   fi
 
-  aws iam create-user --user-name "$new_username" > user-create
-  lastStepCheck "Creating user $new_username"
+  check aws iam create-user --user-name "$new_username" > user-create
 
   created_time=$(jq -r .User.CreateDate user-create | cut -d "T" -f1)
 
   if [ -n "$ref_username" ];then
-    aws iam list-groups-for-user --user-name "$ref_username" | jq -r .Groups[].GroupName > ref_user_groups
-    lastStepCheck "Listing Groups of reference user $ref_username"
+    check aws iam list-groups-for-user --user-name "$ref_username" | jq -r .Groups[].GroupName > ref_user_groups
     
-    aws iam list-attached-user-policies --user-name "$ref_username" \
+    check aws iam list-attached-user-policies --user-name "$ref_username" \
     | jq -r .AttachedPolicies[].PolicyArn > ref_user_direct_policies
-    lastStepCheck "Listing Policies of reference user $ref_username"
-
+  
     while read -r group
       do
-        aws iam add-user-to-group --user-name "$new_username" --group-name "$group"
+        check aws iam add-user-to-group --user-name "$new_username" --group-name "$group"
       done < ref_user_groups
       while read -r policy
         do
-          aws iam attach-user-policy --user-name "$new_username" --policy-arn "$policy"
+          check aws iam attach-user-policy --user-name "$new_username" --policy-arn "$policy"
         done < ref_user_direct_policies
   else
     echo "No reference user mentioned, adding $new_username to user-basic group only"
-    aws iam add-user-to-group --user-name "$new_username" --group-name user-basic
+    check aws iam add-user-to-group --user-name "$new_username" --group-name user-basic
   fi
 
-  aws iam create-login-profile --user-name "$new_username" --password "$new_password" --password-reset-required
-  lastStepCheck "Creating initial login password for $new_username"
+  check aws iam create-login-profile --user-name "$new_username" --password "$new_password" --password-reset-required
 
   updateInventory "$new_username" "$created_time" "$new_useremail"
 
@@ -69,19 +65,17 @@ function addUser(){
 }
 
 function updateInventory(){
-  local new_username=$1
-  local created_time=$2
-  local new_useremail=$3
+  local new_username="$1"
+  local created_time="$2"
+  local new_useremail="$3"
 
-  aws s3 cp s3://"${s3_path}"/"${inventory_file}" .
-  lastStepCheck "Inventory sheet download"
+  check aws s3 cp s3://"$s3_path"/"$inventory_file" .
 
-  serial_no=$(tail -1 "${inventory_file}" | cut -f1 -d",")
+  serial_no=$(tail -1 "$inventory_file" | cut -f1 -d",")
   new_serial_no=$(( serial_no + 1 ))
-  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> "${inventory_file}"
+  echo "$new_serial_no,$new_username,$created_time,$new_useremail" >> "$inventory_file"
 
-  aws s3 cp "${inventory_file}" s3://"${s3_path}"/"${inventory_file}" --sse
-  lastStepCheck "Inventory sheet upload"
+  check aws s3 cp "$inventory_file" s3://"$s3_path"/"$inventory_file" --sse
 }
 
 function setEmailContent(){
@@ -91,45 +85,50 @@ function setEmailContent(){
   echo "To:$2" >> email_content
   if [ "$5" == "emailInstructions" ];then
     local mail_cc="$3"
-    echo "Cc:$3" >> email_content
-    echo "Subject: Welcome to Amazon Web Services (1/2)" >> email_content
-    echo "" >> email_content
-    echo "" >> email_content
-    echo -e "Hello $4,\n\n" >> email_content
-    echo -e "You have been given access to the Amazon Web Services account. \
-        You can get started by using the sign-in information provided below.\n\n" >> email_content
-    echo -e "Sign-in URL: ${sign_in_url} \n\n" >> email_content
-    echo -e "Your initial sign-in password will be provided separately from this email. \
-        When you sign in for the first time, you must change your password.\n\n" >> email_content
-    echo "To use the AWS services, please complete these next steps - " >> email_content
-    echo " 1. Change console password on first login"  >> email_content
-    echo " 2. Setup Multifactor Authentication on your account"  >> email_content
-    echo " 3. Setup AWS CLI"  >> email_content
-    echo "" >> email_content
-    echo -e "Instructions at this location : ${instructions_url}" >> email_content
-    echo "" >> email_content
+    {
+      echo "Cc:$3"
+      echo "Subject: Welcome to Amazon Web Services (1/2)"
+      echo ""
+      echo ""
+      echo -e "Hello $4,\n\n"
+      echo -e "You have been given access to the Amazon Web Services account. \
+          You can get started by using the sign-in information provided below.\n\n"
+      echo -e "Sign-in URL: ${sign_in_url} \n\n"
+      echo -e "Your initial sign-in password will be provided separately from this email. \
+          When you sign in for the first time, you must change your password.\n\n"
+      echo "To use the AWS services, please complete these next steps - "
+      echo " 1. Change console password on first login"
+      echo " 2. Setup Multifactor Authentication on your account"
+      echo " 3. Setup AWS CLI"
+      echo ""
+      echo -e "Instructions at this location : ${instructions_url}"
+      echo ""
+    } >> email_content
   elif [ "$5" == "emailPassphrase" ];then
     local mail_cc=""
-    echo "Subject: Welcome to Amazon Web Services (2/2)" >> email_content
-    echo "" >> email_content
-    echo "" >> email_content
-    echo "Password: $4" >> email_content
-    echo "" >> email_content
-    echo "" >> email_content
+    {
+      echo "Subject: Welcome to Amazon Web Services (2/2)"
+      echo ""
+      echo ""
+      echo "Password: $4"
+      echo ""
+      echo ""
+    } >> email_content
   fi
-  echo "Please write back if you have any questions - ${mail_cc}" >> email_content
-  echo "" >> email_content
-  echo "" >> email_content
-  sendmail -f "$mail_from" "$mail_to" "$mail_cc" < email_content
-  lastStepCheck "Email $5 to $mail_to $mail_cc"
+  {
+    echo "Please write back if you have any questions - $mail_cc"
+    echo ""
+    echo ""
+  } >> email_content
+  check sendmail -f "$mail_from" "$mail_to" "$mail_cc" < email_content
 }
 
-function lastStepCheck(){
-  if [ $? -ne 0 ]; then
-    echo "${1} failed"
+function check (){
+  if ! "$@"; then
+    echo "FAILED - $*"
     exit 1
   else
-    echo "${1} successful"
+    echo "SUCCESS - $*"
   fi
 }
 

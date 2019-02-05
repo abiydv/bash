@@ -9,4 +9,10 @@ before_install:
     - sudo pip install bashate
 
 script:
-- shellcheck -x -e SC2129 -e SC2181 aws-useradd.sh
+- shellcheck -x aws-useradd.sh
+- shellcheck -x aws-useradd.sh
+- shellcheck -x aws-datapipeline-monitor.sh
+- shellcheck -x aws-ebs-daily-monitor.sh
+- shellcheck -x aws-extract-iam-policies.sh
+- shellcheck -x aws-lambda-monitor.sh
+- shellcheck -x aws-long-running-ec2.sh

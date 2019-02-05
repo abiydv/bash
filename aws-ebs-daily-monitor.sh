@@ -18,70 +18,76 @@
 function uploadReport(){
         local S3_PATH=$1
         local DATED=$2
-        mv final_report ./archive/${DATED}
-        aws s3 cp ./archive/${DATED} ${S3_PATH} --sse
+        mv final_report ./archive/"${DATED}"
+        check aws s3 cp ./archive/"${DATED}" "${S3_PATH}" --sse
 }
 
 function cleanFolder(){
         local S3_PATH=$1
-        fileCount=$(aws s3 ls ${S3_PATH} | wc -l)
+        fileCount=$(aws s3 ls "${S3_PATH}" | wc -l)
         if [ "$fileCount" -gt "5" ]; then
-        deleteFile=$( aws s3 ls ${S3_PATH} | sed -n 1p | awk '{print $4}' )
-        aws s3 rm ${S3_PATH}/${deleteFile}
+        deleteFile=$( aws s3 ls "${S3_PATH}" | sed -n 1p | awk '{print $4}' )
+        check aws s3 rm "${S3_PATH}"/"${deleteFile}"
         fi
 }
 
-# Declare and assign variables #
+function check (){
+  if ! "$@"; then
+    echo "FAILED - $*"
+    exit 1
+  else
+    echo "SUCCESS - $*"
+  fi
+}
+
 source ../config/aws-ebs-daily-monitor.properties
 source ../config/email.properties
-DATED=`date +%Y-%m-%d`
+DATED=$(date +%Y-%m-%d)
 
-aws ec2 describe-volumes --region ${REGION} --filters Name=status,Values=available \
+check aws ec2 describe-volumes --region "${REGION}" --filters Name=status,Values=available \
 --query 'Volumes[*].[VolumeId,Size,CreateTime]' --output text > ebs-available-volumes
 
-aws ec2 describe-volumes --region ${REGION} --filters Name=status,Values=in-use  \
+check aws ec2 describe-volumes --region "${REGION}" --filters Name=status,Values=in-use  \
 --query 'Volumes[*].[VolumeId,Size,CreateTime,Attachments[*].InstanceId]' \
 --output text | paste -d "\t" - - > ebs-inuse-volumes
 
-> ebs-volume-owners
+true > ebs-volume-owners
 
-while read line; do
-        instance=$(echo $line | awk -F " " '{print $4}')
-        created=$(echo $line | awk -F " " '{print $3}')
-        size=$(echo $line | awk -F " " '{print $2}')
-        volume=$(echo $line | awk -F " " '{print $1}')
+while read -r line; do
+    instance=$(echo "$line" | awk -F " " '{print $4}')
+    created=$(echo "$line" | awk -F " " '{print $3}')
+    size=$(echo "$line" | awk -F " " '{print $2}')
+    volume=$(echo "$line" | awk -F " " '{print $1}')
         
-        owner=$(aws ec2 describe-instances --region ${REGION} \ 
-        --filters Name=instance-id,Values=$instance \
-        --query "Reservations[*].Instances[*].[Tags[?Key==`User`].Value]" \
-        --output text)
-        
-        printf "\n%s\t%s\t%s\t%s\t%s" $volume $size $created $instance $owner >> ebs-volume-owners
+    # shellcheck disable=SC2006
+    owner=$(aws ec2 describe-instances --region "$REGION" \
+    --filters Name=instance-id,Values="$instance" \
+    --query "Reservations[*].Instances[*].[Tags[?Key==`User`].Value]" \
+    --output text)
+       
+    printf "\n%s\t%s\t%s\t%s\t%s" "$volume" "$size" "$created" "$instance" "$owner" >> ebs-volume-owners
 done < ebs-inuse-volumes
 
-aws ec2 describe-volumes --region ${REGION}  --query 'Volumes[*].{Size:Size}' \ 
+check aws ec2 describe-volumes --region "${REGION}"  --query 'Volumes[*].{Size:Size}' \
 --output text > ebs-volume-sizes
 total_ebs_usage=$(awk '{s+=$1} END {printf "%.0f", s}' ebs-volume-sizes)
 
-printf "To:$mail_to\nSubject: Daily EBS Report\n" > final_report
+printf "To:%s\nSubject: Daily EBS Report\n" "$mail_to" > final_report
+{
+    printf "DAILY EBS REPORT\n\n"
+    printf "Total EBS capacity in account (including available EBS): \
+      %s GB\n\n" "$total_ebs_usage"
+    printf "EBS Volumes in available state not attached to any instances \
+    \n---------------------------------------------------------------\n"
+    printf "VolumeId\tSize(GB)\tCreated\n"
+    cat ebs-available-volumes
+    printf "\nEBS Volumes attached to instances\n----------------------------\
+    -----------------------------------\n"
+    printf "VolumeId\tSize(GB)\tCreated\t\tInstanceId\tUser"
+    sort -k 5  ebs-volume-owners
+    echo 
+} >> final_report
 
-printf "DAILY EBS REPORT\n\n" >> final_report
-printf "Total EBS capacity in account (including available EBS): \
-  %s GB\n\n" $total_ebs_usage >> final_report
-  
-printf "EBS Volumes in available state not attached to any instances \
-\n---------------------------------------------------------------\n" >> final_report
-
-printf "VolumeId\tSize(GB)\tCreated\n" >> final_report
-cat ebs-available-volumes >> final_report
-
-printf "\nEBS Volumes attached to instances\n----------------------------\
------------------------------------\n" >> final_report
-
-printf "VolumeId\tSize(GB)\tCreated\t\tInstanceId\tUser" >> final_report
-sort -k 5  ebs-volume-owners >> final_report
-echo >> final_report
-
-/usr/sbin/sendmail -f ${mail_from} ${mail_to} ${mail_cc} < final_report
-uploadReport ${s3_path} ${DATED}
-cleanFolder ${s3_path}
+check /usr/sbin/sendmail -f "$mail_from" "$mail_to" "$mail_cc" < final_report
+uploadReport "$s3_path" "$DATED"
+cleanFolder "$s3_path"

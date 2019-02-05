@@ -62,7 +62,7 @@ function getInstanceDetails(){
 }
 
 function getUserEmail(){
-  grep -i "$1" ./"$file_name" > ./tmp
+  grep -i "$1" ./"$inventory_file" > ./tmp
   if [ "$(wc -l < ./tmp)" -gt 1 ];then
     mail_to="$mail_from"
   else

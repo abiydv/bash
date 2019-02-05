@@ -15,7 +15,7 @@
 #================================================================================
 
 function init(){
-    source ./configs/datapipeline-monitor.properties
+    source ./configs/aws-datapipeline-monitor.properties
     source ./configs/email.properties
     local today
     today=$(date +%Y-%m-%d -d 'now +1 day')

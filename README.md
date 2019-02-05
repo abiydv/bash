@@ -1,4 +1,6 @@
 # Bash Scripts
+[![Build Status](https://travis-ci.org/abiydv/bash.svg?branch=master)](https://travis-ci.org/abiydv/bash)
+[![CodeFactor](https://www.codefactor.io/repository/github/abiydv/bash/badge)](https://www.codefactor.io/repository/github/abiydv/bash)
 
 ![bash-shell](https://github.com/abiydv/ref-docs/blob/master/images/logos/bash-shell.png)
 
